@@ -34,10 +34,8 @@ gemini_model = genai.GenerativeModel(
     generation_config=generation_config,
 )
 
-with open('models.json', 'r') as f:
-    data = json.load(f)
-
-models = data['models']
+models = []
+models_images = []
 
 def get_topic(model, query):
     groq_client = Groq()
@@ -56,11 +54,11 @@ def get_topic(model, query):
         result.append(content)
     return model, query, "".join(result)
 
-def process_gpt(query):
-    client = Client(provider=OpenaiChat)
+def process_xtekky(query, model):
+    client = Client()
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": f"Explain this in details\n{query}"}],
+        model=model,
+        messages=[{"role": "user", "content": f"Explain in details this\n{query}"}],
     )
     return str(response.choices[0].message.content)
 
@@ -71,11 +69,11 @@ def process_query(model, query):
             history=[{"role": "user", "parts": ["Give me a detailed result about the next query"]}]
         )
         response = chat_session.send_message(query)
-        return model, query, response.text
+        return model, query, response.text      
     elif model == "topic":
         return get_topic(model, query)
-    elif model == "gpt-4o-mini":
-        response = process_gpt(query)
+    elif model in ["gpt-4o","gpt-4-turbo","meta-ai","claude-3-opus","blackboxai-pro","claude-3.5-sonnet"]:
+        response = process_xtekky(query, model)
         return model, query, response
     else:
         completion = groq_client.chat.completions.create(
@@ -93,9 +91,19 @@ def process_query(model, query):
             result.append(content)
         return model, query, "".join(result)
 
+def process_query_image(model,query):
+    client = Client()
+    response = client.images.generate(
+    model=model,
+    prompt=query,
+    response_format="url"
+    )
+    image_url = response.data[0].url
+    return model, image_url
+
 def query_chatbots(query, models):
     results = [] 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=len(models)) as executor:
         future_to_query = {
             executor.submit(process_query, model, query): (model, query)
             for model in models
@@ -106,6 +114,24 @@ def query_chatbots(query, models):
                 results.append({"model": model_name, "response": response_text})
             except Exception as e:
                 model, query = future_to_query[future]
+                print(str(e))
+                results.append({"model": model,"response": "NA"})
+    return results
+
+def prompt_chatbots(query,models_images):
+    results = []
+    with ThreadPoolExecutor(max_workers=len(models_images)) as executor:
+        future_to_query = {
+            executor.submit(process_query_image, model, query): (model, query)
+            for model in models_images
+        }
+    for future in as_completed(future_to_query):
+            try:
+                model_name, response_image = future.result()
+                results.append({"model": model_name, "response": response_image})
+            except Exception as e:
+                model, response_image = future_to_query[future]
+                print(str(e))
                 results.append({"model": model,"response": "NA"})
     return results
 
@@ -118,6 +144,7 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         """Handle POST requests."""
         if self.path == '/send_data':
+
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
 
@@ -133,10 +160,8 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                     self.wfile.write(json.dumps({"error": "No query provided"}).encode())
                     return
 
-                # Process the query across all models
                 results = query_chatbots(query, models)
 
-                # Respond with the result
                 self.send_response(HTTPStatus.OK)
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
@@ -148,13 +173,42 @@ class CustomHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
+    
+        elif self.path == '/send_dataforimages':
 
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+
+            try:
+                data = json.loads(post_data.decode())
+                query = data.get("query")
+                duplicated_models_images = data.get("models")
+                models_images = [item for item in duplicated_models_images for _ in range(2)]
+                if not query:
+                    self.send_response(HTTPStatus.BAD_REQUEST)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"error": "No query provided"}).encode())
+                    return
+
+                results = prompt_chatbots(query, models_images)
+
+                self.send_response(HTTPStatus.OK)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                response_data = {"query": query, "response": results}
+                self.wfile.write(json.dumps(response_data).encode())
+            except Exception as e:
+                self.send_response(HTTPStatus.INTERNAL_SERVER_ERROR)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
         else:
             self.send_error(HTTPStatus.NOT_FOUND)
 
 if __name__ == '__main__':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    server_address = ('', PORT)  # Use port 5005
+    server_address = ('', PORT)
     httpd = http.server.HTTPServer(server_address, CustomHandler)
     print(f"Server running on port {PORT}...")
     httpd.serve_forever()

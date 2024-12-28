@@ -64,19 +64,93 @@ h1 {
   font-size: 15px;
 }
 
+#image-prompt {
+  width: calc(95% - 25px);
+  height: 80px;
+  margin: 20px 2.5%;
+  padding: 10px;
+  background-color: var(--white-bg);
+  border: 2px solid #001994;
+  border-radius: 15px;
+  outline: none;
+  font-size: 15px;
+}
+
 #response-container {
   padding: 10px 2.5%;
   flex: 1;
 }
 
-#response-container h1 {
+#response-images-container {
+  display: flex;
+  padding: 10px 2.5% 30px 2.5%;
+  flex: 1;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+#response-container h1,
+#response-images-container h1 {
   padding-left: 0;
 }
 
-#response-container h1 span {
+#response-container h1 span,
+#response-images-container h1 span {
   font-weight: normal;
   font-size: 28px;
   font-style: italic;
+}
+
+#response-images-process{
+  display: flex;
+  padding: 10px 2.5% 30px 2.5%;
+}
+
+.image-container {
+  display: flex;
+  flex-direction: column;
+  border: #0882eb double 2px;
+  border-radius: 10px;
+  width: 500px;
+  margin: 10px;
+  overflow: hidden;
+  background-color: #000000;
+}
+
+.image-container img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  object-position: center;
+  transform: scale(1.4);
+  transition: transform 0.3s ease-in-out;
+}
+
+.image-container:hover img {
+  transform: scale(1);
+}
+
+.image-container a {
+  color: #0099ff;
+  padding-bottom: 5px;
+  padding-left: 10px;
+  font-style: italic;
+  text-decoration: none;
+}
+
+.image-container p {
+  padding-left: 10px;
+}
+
+.image-container img[alt] {
+  font-family: Arial, sans-serif;
+  color: #888;
+  font-size: 16px;
+  text-align: center;
+  line-height: 50px;
+  background: #f4f4f4;
+  height: auto;
 }
 
 .response-box {
@@ -96,7 +170,7 @@ h1 {
   color: var(--navy-color);
 }
 
-#model-buttons-container {
+.model-buttons-container {
   margin: 0 2.5%;
   display: flex;
   flex-direction: row;
@@ -198,7 +272,8 @@ h1 {
   margin: 15px 0;
 }
 
-#submit {
+#submit,
+#submit_prompt {
   align-items: center;
   background: linear-gradient(
     75deg,
@@ -234,11 +309,14 @@ h1 {
 }
 
 #submit:active,
-#submit:hover {
+#submit_prompt:active,
+#submit:hover,
+#submit_prompt:hover {
   outline: 0;
 }
 
-#submit span {
+#submit span,
+#submit_prompt span {
   background-color: rgba(5, 6, 45, 0.884);
   padding: 16px 24px;
   border-radius: 6px;
@@ -247,7 +325,8 @@ h1 {
   transition: background-color 1s ease, transform 0.3s ease;
 }
 
-#submit:hover span {
+#submit:hover span,
+#submit_prompt:hover span {
   background: none;
 }
 
@@ -286,4 +365,109 @@ footer p {
   .model-button {
     margin: 8px;
   }
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+}
+
+.navbar {
+  position: absolute;
+  top: 30px; /* Adjust the position from top */
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 10px;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  box-shadow: 2px 2px 6px 6px rgba(4, 21, 255, 0.548);
+  padding: 5px 5px;
+  width: 100px;
+  height: 30px;
+}
+
+.navbar:before {
+  content: "";
+  background: linear-gradient(
+    45deg,
+    #0000ff,
+    #0033cc,
+    #0066ff,
+    #3399ff,
+    #66ccff,
+    #99ccff,
+    #6699ff,
+    #003399,
+    #0000ff
+  );
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  background-size: 400%;
+  z-index: -1;
+  filter: blur(5px);
+  -webkit-filter: blur(5px);
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  animation: glowing-model-button 20s linear infinite;
+  transition: opacity 0.3s ease-in-out;
+  border-radius: 10px;
+}
+
+.navbar:after {
+  z-index: -1;
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: background 0.3s ease, transform 0.3s ease;
+  background: #ffffffb9;
+  left: 0;
+  top: 0;
+  border-radius: 10px;
+}
+
+.navbar div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50%;
+  height: 100%;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.vertical-line {
+  height: 40px;
+  width: 2px !important;
+  background-color: #0051ca;
+}
+
+.material-icons {
+  font-size: 26px;
+  transition: color 0.5s;
+}
+
+.keyboard-icon {
+  color: #0066ff77;
+}
+
+.photo_library-icon {
+  color: #0066ff77;
+}
+
+.active {
+  color: #0051ca;
+}
+
+#keyboard-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+#photo_library-content {
+  display: none;
+  flex-direction: column;
+  flex: 1;
 }

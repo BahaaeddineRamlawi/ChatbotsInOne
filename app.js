@@ -1,26 +1,44 @@
-let models;
-let selectedModels;
 let topicResponse;
+const models = [
+  "llama-3.2-90b-vision-preview",
+  "llama3-70b-8192",
+  "llama-3.1-70b-versatile",
+  "llama-3.3-70b-specdec",
+  "llama-3.2-11b-vision-preview",
+  "llama-3.3-8b-instant",
+  "gemma2-9b-it",
+  "mixtral-8x7b-32768",
+  "gemini-1.5-flash",
+  "gpt-4o",
+  "gpt-4-turbo",
+  "blackboxai-pro",
+  "claude-3.5-sonnet",
+];
 
-function loadModels(callback) {
-  fetch("models.json")
-    .then((response) => response.json())
-    .then((data) => {
-      callback(data.models); // Pass the models to the callback function
-    })
-    .catch((error) => {
-      console.error("Error loading the models file:", error);
-    });
-}
+models_images = [
+  "flux",
+  "flux-pro",
+  "flux-realism",
+  "flux-anime",
+  "flux-3d",
+  "flux-disney",
+  "flux-pixel",
+  "flux-4o",
+  "dall-e-3",
+  "any-dark",
+];
 
-// Usage
-loadModels((fetchedModels) => {
-  models = fetchedModels;
-  selectedModels = models;
-});
+models.sort();
+models_images.sort();
+
+let selectedModels = [...models];
+let selectedModels_images = [...models_images];
 
 function createModelButtons() {
   const container = document.getElementById("model-buttons-container");
+  const container_images = document.getElementById(
+    "images-model-buttons-container"
+  );
   container.innerHTML = "";
 
   models.forEach((model) => {
@@ -30,6 +48,14 @@ function createModelButtons() {
     button.classList.add("selected");
     button.onclick = () => toggleModelSelection(model, button);
     container.appendChild(button);
+  });
+  models_images.forEach((model) => {
+    const button = document.createElement("button");
+    button.textContent = model;
+    button.classList.add("model-button");
+    button.classList.add("selected");
+    button.onclick = () => toggleModelSelection(model, button);
+    container_images.appendChild(button);
   });
 }
 
@@ -63,7 +89,6 @@ function sendData(query, models) {
       return response.json();
     })
     .then((data) => {
-      console.log(data);
       topicResponse =
         data.response.find((result) => result.model === "topic")?.response ||
         "";
@@ -88,11 +113,9 @@ function sendData(query, models) {
         modelTitle.textContent = `Model: ${result.model}`;
         responseBox.appendChild(modelTitle);
 
-        const formattedResponse = result.response.replace(
-          /\*\*(.*?)\*\*/g,
-          "<b>$1</b>"
-        );
-
+        let formattedResponse = result.response
+          .replace(/\n/g, "<br>")
+          .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
         const modelResponse = document.createElement("p");
         modelResponse.innerHTML = formattedResponse;
         responseBox.appendChild(modelResponse);
@@ -122,21 +145,33 @@ function sendData(query, models) {
     });
 }
 
-document.getElementById("query").addEventListener("keydown", (event) => {
-  const queryInput = document.getElementById("query");
-  if (event.key === "Enter" && !event.shiftKey) {
-    event.preventDefault();
-    document.getElementById("submit").click();
-  } else if (event.key === "Enter" && event.shiftKey) {
-    const cursorPosition = queryInput.selectionStart;
-    queryInput.value =
-      queryInput.value.slice(0, cursorPosition) +
-      "\n" +
-      queryInput.value.slice(cursorPosition);
-    event.preventDefault();
-    queryInput.selectionStart = queryInput.selectionEnd = cursorPosition + 1;
-  }
-});
+function sendDataforimages(query, models) {
+  const data = {
+    query: query,
+    models: models,
+  };
+  fetch("/send_dataforimages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      loadImages(data);
+    })
+    .catch((error) => {
+      console.error("Error sending/receiving data:", error);
+      document.getElementById("response-container").textContent =
+        "Error connecting to server.";
+    });
+}
 
 document.getElementById("submit").addEventListener("click", () => {
   const query = document.getElementById("query").value;
@@ -154,6 +189,18 @@ document.getElementById("submit").addEventListener("click", () => {
   sendData(query, selectedModels);
 });
 
+document.getElementById("submit_prompt").addEventListener("click", () => {
+  const query = document.getElementById("image-prompt").value;
+
+  if (!query.trim()) {
+    alert("Please enter your prompt.");
+    return;
+  }
+  document.getElementById("response-images-process").innerHTML =
+    "Generating your images...";
+  sendDataforimages(query, selectedModels_images);
+});
+
 function saveResponsesToFile(content) {
   const blob = new Blob([content], { type: "text/plain" });
   const link = document.createElement("a");
@@ -165,6 +212,38 @@ function saveResponsesToFile(content) {
   link.click();
 }
 
-loadModels(() => {
-  createModelButtons(); // Now create buttons after models are loaded
-});
+createModelButtons();
+
+function loadImages(data) {
+  data.response.sort((a, b) => {
+    return a.model.localeCompare(b.model);
+  });
+  const responseText = document.getElementById("response-images-container");
+  const responseContainer = document.getElementById(
+    "response-images-container"
+  );
+  responseText.innerHTML = "";
+  responseContainer.innerHTML = "";
+  data.response.forEach((result) => {
+    const image = document.createElement("img");
+    image.src = result.response;
+    image.alt = `Image generated by ${result.model}`;
+
+    const caption = document.createElement("p");
+    caption.textContent = `Model: ${result.model}`;
+
+    const imageContainer = document.createElement("div");
+    imageContainer.classList.add("image-container");
+
+    const link = document.createElement("a");
+    link.href = result.response;
+    link.target = "_blank";
+    link.textContent = "Open Image in a New Tab";
+
+    imageContainer.appendChild(image);
+    imageContainer.appendChild(caption);
+    imageContainer.appendChild(link);
+
+    responseContainer.appendChild(imageContainer);
+  });
+}

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Chatbots In One</title>
     <link rel="stylesheet" href="styles.css" />
 </head>
@@ -11,14 +12,37 @@
     <header>
         <img src="assets/logo.png" /><h1>Chatbots In One</h1>
     </header>
-    <textarea id="query" rows="5" cols="50" placeholder="Enter your query here..."></textarea><br>
-    <div id="model-buttons-container"></div><br>
-    <div class="submit-button-container">
-            <button id="submit">
-                <span>Submit Query</span>
-            </button> 
+    <nav>
+        <div class="navbar">
+            <div id="keyboard" class="keyboard-icon">
+                <span class="material-icons">keyboard</span>
+            </div>
+            <div class="vertical-line"></div>
+            <div id="photo_library" class="photo_library-icon">
+                <span class="material-icons">photo_library</span>
+            </div>
+        </div>
+    </nav>
+    <div id="keyboard-content">
+        <textarea id="query" rows="5" cols="50" placeholder="Enter Your Query Here..."></textarea><br>
+        <div id="model-buttons-container" class="model-buttons-container"></div><br>
+        <div class="submit-button-container">
+                <button id="submit">
+                    <span>Submit Query</span>
+                </button> 
+        </div>
+        <div id="response-container"></div>
     </div>
-    <div id="response-container">
+    <div id="photo_library-content">
+        <textarea id="image-prompt" rows="3" cols="50" placeholder="Enter Your Prompt to Generate an Image..."></textarea><br>
+        <div id="images-model-buttons-container" class="model-buttons-container"></div><br>
+        <div class="submit-button-container">
+            <button id="submit_prompt">
+                <span>Submit Prompt</span>
+            </button> 
+        </div>
+        <div id="response-images-process"></div>
+        <div id="response-images-container"></div>
     </div>
     <footer>
         <div>
@@ -26,6 +50,7 @@
           <p id="github">Visit The GitHub Repository on <br><a href="https://github.com/BahaaeddineRamlawi/ChatbotsInOne" target="_blank">ChatbotsInOne</a></p>
         </div>
     </footer>
+    <script src="navigation.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

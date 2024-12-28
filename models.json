@@ -1,15 +1,31 @@
 {
-    "models": [
-      "llama-3.2-90b-vision-preview",
-      "llama3-70b-8192",
-      "llama-3.1-70b-versatile",
-      "llama-3.3-70b-specdec",
-      "llama-3.2-11b-vision-preview",
-      "llama-3.3-8b-instant",
-      "gemma2-9b-it",
-      "mixtral-8x7b-32768",
-      "gemini-1.5-flash",
-      "gpt-4o-mini"
-    ]
-  }
-  
+  "models": [
+    "llama-3.2-90b-vision-preview",
+    "llama3-70b-8192",
+    "llama-3.1-70b-versatile",
+    "llama-3.3-70b-specdec",
+    "llama-3.2-11b-vision-preview",
+    "llama-3.3-8b-instant",
+    "gemma2-9b-it",
+    "mixtral-8x7b-32768",
+    "gemini-1.5-flash",
+    "gpt-4o",
+    "gpt-4-turbo",
+    "o1-mini",
+    "phi-2",
+    "blackboxai-pro",
+    "claude-3.5-sonnet"
+  ],
+  "models_images": [
+    "flux",
+    "flux-pro",
+    "flux-realism",
+    "flux-anime",
+    "flux-3d",
+    "flux-disney",
+    "flux-pixel",
+    "flux-4o",
+    "dall-e-3",
+    "any-dark"
+  ]
+}
